@@ -92,13 +92,35 @@ class TypingSpeedGUI:
         )
         self.timer_label.pack(pady=10)
         
+        # Control buttons frame
+        button_frame = ttk.Frame(self.root)
+        button_frame.pack(pady=10)
+        
         # Start button
         self.start_button = ttk.Button(
-            self.root,
+            button_frame,
             text="Start",
             command=self.start_game
         )
-        self.start_button.pack(pady=10)
+        self.start_button.pack(side=tk.LEFT, padx=5)
+        
+        # Stop button
+        self.stop_button = ttk.Button(
+            button_frame,
+            text="Stop",
+            command=self.stop_game,
+            state='disabled'
+        )
+        self.stop_button.pack(side=tk.LEFT, padx=5)
+        
+        # Reset button
+        self.reset_button = ttk.Button(
+            button_frame,
+            text="Reset",
+            command=self.reset_game,
+            state='disabled'
+        )
+        self.reset_button.pack(side=tk.LEFT, padx=5)
         
         # Stats frame
         stats_frame = ttk.Frame(self.root)
@@ -117,18 +139,6 @@ class TypingSpeedGUI:
             font=TEXT_FONT
         )
         self.accuracy_label.pack(side=tk.LEFT, padx=10)
-        
-        # Control buttons
-        button_frame = ttk.Frame(self.root)
-        button_frame.pack(pady=20)
-        
-        self.reset_button = ttk.Button(
-            button_frame,
-            text="Reset",
-            command=self.reset_game,
-            state='disabled'
-        )
-        self.reset_button.pack(side=tk.LEFT, padx=5)
     
     def _setup_bindings(self) -> None:
         """Setup keyboard bindings."""
@@ -145,9 +155,42 @@ class TypingSpeedGUI:
         self.input_field.configure(state='normal')
         self.input_field.delete(0, tk.END)
         self.start_button.configure(state='disabled')
+        self.stop_button.configure(state='normal')
         self.reset_button.configure(state='normal')
         self._update_timer()
         
+    def stop_game(self) -> None:
+        """Stop the current typing test."""
+        if not self.game.start_time:
+            return
+            
+        if messagebox.askyesno("Confirm Stop", "Are you sure you want to stop the test?"):
+            self.end_test()
+            
+    def end_test(self) -> None:
+        """End the typing test."""
+        if not self.game.start_time:
+            return
+            
+        results = self.game.calculate_results(self.input_field.get())
+        self.high_scores.add_score(
+            results['wpm'],
+            results['accuracy'],
+            self.game.difficulty
+        )
+        
+        self.input_field.configure(state='disabled')
+        self.start_button.configure(state='normal')
+        self.stop_button.configure(state='disabled')
+        self.reset_button.configure(state='disabled')
+        
+        messagebox.showinfo(
+            "Test Complete",
+            f"WPM: {results['wpm']}\n"
+            f"Accuracy: {results['accuracy']}%\n"
+            f"Time: {results['time']} seconds"
+        )
+
     def reset_game(self) -> None:
         """Reset the game state."""
         self.game.reset()
@@ -164,6 +207,7 @@ class TypingSpeedGUI:
         self.input_field.configure(state='disabled')
         self.input_field.delete(0, tk.END)
         self.start_button.configure(state='normal')
+        self.stop_button.configure(state='disabled')
         self.reset_button.configure(state='disabled')
         self.timer_label.configure(text="Time: 0")
         self.wpm_label.configure(text="0 WPM")
@@ -199,29 +243,6 @@ class TypingSpeedGUI:
         # Check if test is complete
         if len(typed_text) >= len(self.current_text) or self.game.is_time_up():
             self.end_test()
-    
-    def end_test(self) -> None:
-        """End the typing test."""
-        if not self.game.start_time:
-            return
-            
-        results = self.game.calculate_results(self.input_field.get())
-        self.high_scores.add_score(
-            results['wpm'],
-            results['accuracy'],
-            self.game.difficulty
-        )
-        
-        self.input_field.configure(state='disabled')
-        self.start_button.configure(state='normal')
-        self.reset_button.configure(state='disabled')
-        
-        messagebox.showinfo(
-            "Test Complete",
-            f"WPM: {results['wpm']}\n"
-            f"Accuracy: {results['accuracy']}%\n"
-            f"Time: {results['time']} seconds"
-        )
     
     def _on_difficulty_change(self, *args) -> None:
         """Handle difficulty change."""
