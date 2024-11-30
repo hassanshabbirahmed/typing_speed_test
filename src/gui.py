@@ -75,6 +75,10 @@ class TypingSpeedGUI:
         )
         self.text_display.pack(pady=20)
         
+        # Configure text tags for coloring
+        self.text_display.tag_configure('correct', foreground='green')
+        self.text_display.tag_configure('incorrect', foreground='red')
+        
         # Input field
         self.input_field = ttk.Entry(
             self.root,
