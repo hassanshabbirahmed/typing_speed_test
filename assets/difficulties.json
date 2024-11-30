@@ -1,8 +1,8 @@
 {
     "easy": {
         "words": 15,
-        "time_limit": null,
-        "description": "Practice mode with no time limit"
+        "time_limit": 120,
+        "description": "Practice mode with 2-minute time limit"
     },
     "medium": {
         "words": 25,
@@ -11,7 +11,7 @@
     },
     "hard": {
         "words": 40,
-        "time_limit": 60,
-        "description": "Challenge mode with more words"
+        "time_limit": 45,
+        "description": "Challenge mode with 45-second time limit"
     }
 }

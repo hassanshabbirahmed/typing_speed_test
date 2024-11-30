@@ -62,9 +62,9 @@ class ConfigManager:
         difficulties_file = assets_dir / 'difficulties.json'
         if not difficulties_file.exists():
             difficulties = {
-                'easy': {'words': 15, 'time_limit': None},
+                'easy': {'words': 15, 'time_limit': 120},
                 'medium': {'words': 25, 'time_limit': 60},
-                'hard': {'words': 40, 'time_limit': 60}
+                'hard': {'words': 40, 'time_limit': 45}
             }
             difficulties_file.write_text(json.dumps(difficulties, indent=4))
         else:

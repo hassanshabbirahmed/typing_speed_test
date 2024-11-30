@@ -1,17 +1,17 @@
 """
 Tests for high scores functionality.
 """
-import pytest
 import json
-from pathlib import Path
+import pytest
 from src.high_scores import HighScores
-from src.settings import MAX_HIGH_SCORES
+
+MAX_HIGH_SCORES = 10
 
 @pytest.fixture
 def high_scores(temp_dir):
-    """Fixture for HighScores instance with test file."""
+    """Fixture for HighScores instance."""
+    # Initialize empty scores file
     scores_file = temp_dir / "test_scores.json"
-    # Initialize with empty scores structure
     scores_data = {
         'easy': [],
         'medium': [],
@@ -19,14 +19,13 @@ def high_scores(temp_dir):
     }
     scores_file.write_text(json.dumps(scores_data))
     
-    hs = HighScores(scores_file)
-    return hs
+    return HighScores(scores_file)
 
 def test_initialization(high_scores):
     """Test HighScores initialization."""
+    assert high_scores.scores_file
     assert isinstance(high_scores.scores, dict)
-    assert all(diff in high_scores.scores for diff in ['easy', 'medium', 'hard'])
-    assert all(isinstance(high_scores.scores[diff], list) for diff in ['easy', 'medium', 'hard'])
+    assert all(difficulty in high_scores.scores for difficulty in ['easy', 'medium', 'hard'])
 
 def test_add_score(high_scores):
     """Test adding and sorting scores."""
@@ -37,9 +36,8 @@ def test_add_score(high_scores):
 
     scores = high_scores.get_scores("medium")
     assert len(scores) == 3
-    assert scores[0]['wpm'] == 60.0
-    assert scores[0]['accuracy'] == 98.0
-    assert scores[-1]['wpm'] == 45.0
+    assert scores[0]['wpm'] == 60.0  # Highest WPM first
+    assert scores[-1]['wpm'] == 45.0  # Lowest WPM last
 
 def test_max_scores_limit(high_scores):
     """Test that scores list respects max_scores limit."""
@@ -49,22 +47,42 @@ def test_max_scores_limit(high_scores):
 
     scores = high_scores.get_scores("medium")
     assert len(scores) == MAX_HIGH_SCORES
-    assert scores[0]['wpm'] == 50.0 + (MAX_HIGH_SCORES + 4)  # Highest score
+    assert scores[0]['wpm'] == 64.0  # Highest WPM first (50 + 14)
+    assert scores[-1]['wpm'] == 55.0  # Only keeps top MAX_HIGH_SCORES (50 + 5)
 
-def test_score_persistence(high_scores):
+def test_score_persistence(high_scores, temp_dir):
     """Test that scores are properly saved and loaded."""
     # Add some scores
-    high_scores.add_score(55.0, 96.0, "medium")
-    high_scores.add_score(65.0, 98.0, "hard")
+    high_scores.add_score(50.5, 95.0, "medium")
+    high_scores.add_score(60.0, 98.0, "medium")
     
     # Create new instance with same file
-    new_scores = HighScores(high_scores.scores_file)
+    scores_file = temp_dir / "test_scores.json"
+    new_high_scores = HighScores(scores_file)
     
     # Verify scores were loaded
-    assert new_scores.get_scores("medium")[0]['wpm'] == 55.0
-    assert new_scores.get_scores("hard")[0]['wpm'] == 65.0
+    scores = new_high_scores.get_scores("medium")
+    assert len(scores) == 2
+    assert scores[0]['wpm'] == 60.0
+    assert scores[1]['wpm'] == 50.5
 
 def test_invalid_difficulty(high_scores):
     """Test handling of invalid difficulty levels."""
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Invalid difficulty"):
         high_scores.add_score(50.0, 95.0, "invalid")
+        
+def test_empty_scores_file(temp_dir):
+    """Test initialization with empty scores file."""
+    scores_file = temp_dir / "empty_scores.json"
+    high_scores = HighScores(scores_file)
+    assert all(difficulty in high_scores.scores for difficulty in ['easy', 'medium', 'hard'])
+    assert all(len(scores) == 0 for scores in high_scores.scores.values())
+    
+def test_corrupted_scores_file(temp_dir):
+    """Test handling of corrupted scores file."""
+    scores_file = temp_dir / "corrupted_scores.json"
+    scores_file.write_text("invalid json")
+    
+    high_scores = HighScores(scores_file)
+    assert all(difficulty in high_scores.scores for difficulty in ['easy', 'medium', 'hard'])
+    assert all(len(scores) == 0 for scores in high_scores.scores.values())

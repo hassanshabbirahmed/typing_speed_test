@@ -1,71 +1,83 @@
-"""
-Core game logic for the Typing Speed Test application.
-"""
-from typing import List, Dict, Optional, Tuple
-import random
+"""Game logic for the typing speed test."""
 import time
-from src.utils import calculate_wpm, calculate_accuracy, load_word_list
-from src.settings import DIFFICULTIES
+import random
+from pathlib import Path
+from typing import Dict, List, Optional
+
+from .utils import calculate_wpm, calculate_accuracy
+from .settings import DIFFICULTIES
 
 class GameManager:
-    """Manages the core game logic for the typing speed test."""
-    
-    def __init__(self):
-        self.word_list: List[str] = load_word_list()
-        self.current_text: str = ""
+    """Manages game state and logic."""
+
+    def __init__(self, word_list_file: Path):
+        """Initialize game manager."""
+        self.word_list_file = Path(word_list_file)
+        self.word_list: List[str] = []
+        self.current_text = ""
         self.start_time: Optional[float] = None
-        self.current_difficulty: str = 'medium'
-        self.word_count: int = DIFFICULTIES[self.current_difficulty]['words']
-        self.time_limit: Optional[int] = DIFFICULTIES[self.current_difficulty]['time_limit']
+        self.difficulty = 'medium'
+        self.word_count = DIFFICULTIES[self.difficulty]['words']
+        self.time_limit = DIFFICULTIES[self.difficulty]['time_limit']
         
-    def generate_text(self) -> str:
-        """Generate random text for typing test based on current difficulty."""
-        selected_words = random.sample(self.word_list, self.word_count)
-        self.current_text = ' '.join(selected_words)
-        return self.current_text
-    
-    def start_game(self) -> None:
-        """Start a new game."""
-        self.start_time = time.time()
-        self.generate_text()
-    
+        self._load_words()
+
+    def _load_words(self) -> None:
+        """Load word list from file."""
+        with open(self.word_list_file, 'r') as f:
+            self.word_list = [word.strip() for word in f.readlines() if word.strip()]
+
     def set_difficulty(self, difficulty: str) -> None:
-        """Set the game difficulty."""
-        if difficulty in DIFFICULTIES:
-            self.current_difficulty = difficulty
-            self.word_count = DIFFICULTIES[difficulty]['words']
-            self.time_limit = DIFFICULTIES[difficulty]['time_limit']
-    
+        """Set game difficulty."""
+        if difficulty not in DIFFICULTIES:
+            raise ValueError(f"Invalid difficulty: {difficulty}")
+        
+        self.difficulty = difficulty
+        self.word_count = DIFFICULTIES[difficulty]['words']
+        self.time_limit = DIFFICULTIES[difficulty]['time_limit']
+
+    def generate_text(self) -> str:
+        """Generate text for typing test."""
+        if len(self.word_list) < self.word_count:
+            # If not enough words, duplicate the list
+            self.word_list = self.word_list * (self.word_count // len(self.word_list) + 1)
+        
+        words = random.sample(self.word_list, self.word_count)
+        self.current_text = " ".join(words)
+        return self.current_text
+
+    def start_game(self, difficulty: Optional[str] = None) -> None:
+        """Start a new game."""
+        if difficulty:
+            self.set_difficulty(difficulty)
+        self.generate_text()
+        self.start_time = time.time()
+
+    def reset(self) -> None:
+        """Reset game state."""
+        self.current_text = ""
+        self.start_time = None
+
+    def get_elapsed_time(self) -> float:
+        """Get elapsed time since game start."""
+        if not self.start_time:
+            return 0.0
+        return time.time() - self.start_time
+
+    def is_time_up(self) -> bool:
+        """Check if time limit is reached."""
+        if not self.time_limit or not self.start_time:
+            return False
+        return self.get_elapsed_time() >= self.time_limit
+
     def calculate_results(self, typed_text: str) -> Dict[str, float]:
         """Calculate typing test results."""
-        if not self.start_time:
-            return {'wpm': 0, 'accuracy': 0, 'time': 0}
-            
-        end_time = time.time()
-        time_taken = end_time - self.start_time
-        
-        # Calculate words per minute
-        word_count = len(typed_text.split())
-        wpm = calculate_wpm(word_count, time_taken)
-        
-        # Calculate accuracy
+        elapsed_time = self.get_elapsed_time()
+        wpm = calculate_wpm(typed_text, elapsed_time)
         accuracy = calculate_accuracy(typed_text, self.current_text)
         
         return {
-            'wpm': round(wpm, 2),
-            'accuracy': round(accuracy, 2),
-            'time': round(time_taken, 2)
+            'wpm': wpm,
+            'accuracy': accuracy,
+            'time': elapsed_time
         }
-    
-    def is_time_up(self) -> bool:
-        """Check if the time limit has been reached."""
-        if not self.time_limit or not self.start_time:
-            return False
-        return (time.time() - self.start_time) >= self.time_limit
-    
-    def get_remaining_time(self) -> Optional[int]:
-        """Get remaining time in seconds."""
-        if not self.time_limit or not self.start_time:
-            return None
-        remaining = self.time_limit - (time.time() - self.start_time)
-        return max(0, int(remaining))

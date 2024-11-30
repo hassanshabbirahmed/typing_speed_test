@@ -1,41 +1,51 @@
-"""
-Tests for utility functions.
-"""
+"""Tests for utility functions."""
+import os
 import pytest
 from src.utils import calculate_wpm, calculate_accuracy, load_word_list
 
 def test_calculate_wpm():
     """Test WPM calculation."""
-    assert calculate_wpm(30, 60) == 30.0  # 30 words in 1 minute = 30 WPM
-    assert calculate_wpm(15, 30) == 30.0  # 15 words in 30 seconds = 30 WPM
-    assert calculate_wpm(0, 60) == 0.0    # No words = 0 WPM
-    assert calculate_wpm(10, 0) == 0.0    # Divide by zero protection
+    # Test normal case
+    assert calculate_wpm("word1 word2 word3", 60) == 3.0  # 3 words in 1 minute = 3 WPM
+    assert calculate_wpm("word1 word2", 30) == 4.0  # 2 words in 0.5 minutes = 4 WPM
+    
+    # Test edge cases
+    assert calculate_wpm("", 60) == 0.0  # Empty text
+    assert calculate_wpm("word", 0) == 0.0  # Zero time
+    assert calculate_wpm("word", -1) == 0.0  # Negative time
 
 def test_calculate_accuracy():
     """Test accuracy calculation."""
-    # Perfect match
-    assert calculate_accuracy("test", "test") == 100.0
+    # Test perfect match
+    assert calculate_accuracy("test text", "test text") == 100.0
     
-    # No match
-    assert calculate_accuracy("test", "none") == 0.0
+    # Test partial match
+    assert calculate_accuracy("test text", "test") == 50.0
+    assert calculate_accuracy("test text", "test texting") == 50.0
     
-    # Partial match
-    assert calculate_accuracy("test", "tent") == 75.0  # 3/4 characters match
+    # Test no match
+    assert calculate_accuracy("test text", "wrong words") == 0.0
     
-    # Empty strings
-    assert calculate_accuracy("", "") == 0.0
+    # Test empty strings
+    assert calculate_accuracy("", "") == 100.0
     assert calculate_accuracy("test", "") == 0.0
     assert calculate_accuracy("", "test") == 0.0
 
-def test_load_word_list(test_data_dir):
+def test_load_word_list(test_word_list_file):
     """Test word list loading."""
-    # Test actual word list loading
-    words = load_word_list()
+    # Test loading from file
+    words = load_word_list(test_word_list_file)
     assert isinstance(words, list)
-    assert all(isinstance(word, str) for word in words)
     assert len(words) > 0
-
-    # Test with missing file (should return default list)
-    default_words = load_word_list()
-    assert isinstance(default_words, list)
-    assert len(default_words) > 0
+    assert all(isinstance(word, str) for word in words)
+    
+    # Test with non-existent file
+    with pytest.raises(FileNotFoundError):
+        load_word_list("nonexistent.txt")
+    
+    # Test with empty file
+    empty_file = os.path.join(os.path.dirname(test_word_list_file), "empty.txt")
+    with open(empty_file, "w") as f:
+        pass
+    words = load_word_list(empty_file)
+    assert len(words) == 0

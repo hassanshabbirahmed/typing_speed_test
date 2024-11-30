@@ -2,7 +2,7 @@
 Main entry point for the Typing Speed Test application.
 """
 import tkinter as tk
-from gui import TypingSpeedGUI
+from src.gui import TypingSpeedGUI
 
 def main():
     root = tk.Tk()
