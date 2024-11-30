@@ -4,14 +4,14 @@ Utility functions for the typing speed test.
 from pathlib import Path
 from typing import List
 
-def calculate_wpm(typed_text: str, elapsed_time: float) -> float:
-    """Calculate words per minute."""
+def calculate_wpm(typed_text: str, elapsed_time: float) -> int:
+    """Calculate words per minute as a whole number."""
     if elapsed_time <= 0:
-        return 0.0
+        return 0
     
     word_count = len(typed_text.split())
     minutes = elapsed_time / 60
-    return word_count / minutes if minutes > 0 else 0.0
+    return round(word_count / minutes) if minutes > 0 else 0
 
 def calculate_accuracy(typed_text: str, target_text: str) -> float:
     """Calculate typing accuracy as a percentage."""

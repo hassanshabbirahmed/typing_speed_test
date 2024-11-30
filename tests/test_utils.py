@@ -6,13 +6,13 @@ from src.utils import calculate_wpm, calculate_accuracy, load_word_list
 def test_calculate_wpm():
     """Test WPM calculation."""
     # Test normal case
-    assert calculate_wpm("word1 word2 word3", 60) == 3.0  # 3 words in 1 minute = 3 WPM
-    assert calculate_wpm("word1 word2", 30) == 4.0  # 2 words in 0.5 minutes = 4 WPM
+    assert calculate_wpm("word1 word2 word3", 60) == 3  # 3 words in 1 minute = 3 WPM
+    assert calculate_wpm("word1 word2", 30) == 4  # 2 words in 0.5 minutes = 4 WPM
     
     # Test edge cases
-    assert calculate_wpm("", 60) == 0.0  # Empty text
-    assert calculate_wpm("word", 0) == 0.0  # Zero time
-    assert calculate_wpm("word", -1) == 0.0  # Negative time
+    assert calculate_wpm("", 60) == 0  # Empty text
+    assert calculate_wpm("word", 0) == 0  # Zero time
+    assert calculate_wpm("word", -1) == 0  # Negative time
 
 def test_calculate_accuracy():
     """Test accuracy calculation."""
