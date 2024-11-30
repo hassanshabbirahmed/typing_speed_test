@@ -207,9 +207,9 @@ class TypingSpeedGUI:
             
         results = self.game.calculate_results(self.input_field.get())
         self.high_scores.add_score(
-            self.game.difficulty,
             results['wpm'],
-            results['accuracy']
+            results['accuracy'],
+            self.game.difficulty
         )
         
         self.input_field.configure(state='disabled')
