@@ -1,7 +1,7 @@
 # Typing Speed Test
 
 [![Tests](https://github.com/hassanshabbirahmed/typing_speed_test/actions/workflows/python-test.yml/badge.svg)](https://github.com/hassanshabbirahmed/typing_speed_test/actions)
-[![codecov](https://codecov.io/gh/hassanshabbirahmed/typing_speed_test/branch/main/graph/badge.svg)](https://codecov.io/gh/hassanshabbirahmed/typing_speed_test)
+[![codecov](https://codecov.io/gh/hassanshabbirahmed/typing_speed_test/graph/badge.svg?token=b9ec80ba-cc55-4ae3-8147-25cdc678094c)](https://codecov.io/gh/hassanshabbirahmed/typing_speed_test)
 
 A Python-based application to test and improve your typing speed.
 
