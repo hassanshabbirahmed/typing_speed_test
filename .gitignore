@@ -14,3 +14,10 @@ ENV/
 # OS
 .DS_Store
 Thumbs.db
+
+# Other
+__pycache__/
+*.pyc
+.pytest_cache/
+typing_scores.json
+test_scores.json
