@@ -1,33 +1,74 @@
-# Typing Speed Test Application
+# Typing Speed Test
 
-A native Linux application to measure and improve your typing speed.
+A Python-based application to test and improve your typing speed.
 
 ## Features
+
+- Multiple difficulty levels (Easy, Medium, Hard)
 - Real-time WPM (Words Per Minute) calculation
-- Accuracy measurement
-- Clean and intuitive GUI
-- Random word generation for practice
+- Accuracy tracking
+- High scores system
+- Configurable word lists
 
-## Installation
-1. Ensure you have Python 3.x installed
-2. Create a virtual environment:
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+## Project Structure
 
-## Usage
-Run the application:
-```bash
-python main.py
+```
+typing_speed_test/
+├── src/                    # Source code
+│   ├── config/            # Configuration management
+│   ├── game_logic.py      # Core game mechanics
+│   ├── gui.py            # User interface
+│   ├── high_scores.py    # Score tracking
+│   ├── settings.py       # Application settings
+│   └── utils.py          # Helper functions
+├── tests/                 # Test suite
+│   ├── conftest.py       # Test configuration
+│   ├── test_high_scores.py
+│   └── test_typing_speed.py
+├── assets/               # Static resources
+│   ├── difficulties.json
+│   └── word_lists.json
+├── docs/                 # Documentation
+├── .env                  # Environment variables (not in git)
+├── .env.example          # Environment template
+├── requirements.txt      # Project dependencies
+└── README.md            # Project documentation
 ```
 
-## How to Use
-1. Click "Start Test" to begin
-2. Type the shown text as accurately and quickly as possible
-3. Your WPM and accuracy will be displayed in real-time
-4. Results will be shown when you complete the test
+## Setup
+
+1. Create a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+```
+
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Copy `.env.example` to `.env` and adjust settings if needed:
+```bash
+cp .env.example .env
+```
+
+4. Run the application:
+```bash
+python -m src.main
+```
+
+## Testing
+
+Run the test suite:
+```bash
+pytest tests/
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests
+5. Submit a pull request
