@@ -5,3 +5,4 @@ pytest-mock>=3.11.1
 pytest-timeout>=2.1.0
 black>=23.7.0
 pylint>=2.17.5
+xvfbwrapper>=0.2.9

@@ -5,12 +5,41 @@ import os
 import tempfile
 from pathlib import Path
 import pytest
+import tkinter as tk
 from .test_helpers import (
     create_test_scores_file,
     create_test_word_list,
     get_sample_scores,
     get_sample_words
 )
+
+def pytest_configure(config):
+    """Configure pytest with custom markers."""
+    config.addinivalue_line(
+        "markers", "gui: mark test as requiring GUI"
+    )
+
+@pytest.fixture(scope="session")
+def xvfb():
+    """Setup virtual display if running in CI."""
+    if os.environ.get('CI'):
+        try:
+            from xvfbwrapper import Xvfb
+            vdisplay = Xvfb()
+            vdisplay.start()
+            yield vdisplay
+            vdisplay.stop()
+        except ImportError:
+            pytest.skip("xvfbwrapper not installed")
+    else:
+        yield None
+
+@pytest.fixture
+def tk_root(xvfb):
+    """Create a Tkinter root window for tests."""
+    root = tk.Tk()
+    yield root
+    root.destroy()
 
 @pytest.fixture
 def temp_dir():
