@@ -169,6 +169,9 @@ class TypingSpeedGUI:
             return
             
         if messagebox.askyesno("Confirm Stop", "Are you sure you want to stop the test?"):
+            if self.timer_id:
+                self.root.after_cancel(self.timer_id)
+                self.timer_id = None
             self.end_test()
             
     def end_test(self) -> None:
