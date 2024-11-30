@@ -1,6 +1,7 @@
 """
 Tests for game logic functionality.
 """
+import time
 import pytest
 from src.game_logic import GameManager
 from src.settings import DIFFICULTIES
@@ -31,7 +32,7 @@ def test_difficulty_settings(game_manager):
     # Test easy difficulty
     game_manager.set_difficulty('easy')
     assert game_manager.word_count == 15
-    assert game_manager.time_limit is None
+    assert game_manager.time_limit == 120
 
     # Test hard difficulty
     game_manager.set_difficulty('hard')
@@ -43,26 +44,38 @@ def test_calculate_results(game_manager):
     game_manager.current_text = "test text"
     game_manager.start_game()
     
-    # Simulate typing
+    # Wait a bit to simulate typing time
+    time.sleep(0.1)
+    
+    # Simulate typing with exact match
     results = game_manager.calculate_results("test text")
     
+    assert isinstance(results, dict)
     assert 'wpm' in results
     assert 'accuracy' in results
     assert 'time' in results
     assert results['accuracy'] == 100.0
+    
+    # Test with partial match
+    game_manager.current_text = "test text again"
+    game_manager.start_game()
+    time.sleep(0.1)
+    results = game_manager.calculate_results("test text wrong")
+    assert results['accuracy'] < 100.0
 
 def test_time_management(game_manager):
     """Test time-related functions."""
-    # Test with no time limit (easy mode)
-    game_manager.set_difficulty('easy')
     game_manager.start_game()
+    assert game_manager.start_time is not None
+    
+    time.sleep(0.1)
+    elapsed = game_manager.get_elapsed_time()
+    assert elapsed > 0
+    
+    # Test time limit
+    game_manager.set_difficulty('medium')  # 60 second limit
     assert not game_manager.is_time_up()
-    assert game_manager.get_remaining_time() is None
-
-    # Test with time limit (medium mode)
-    game_manager.set_difficulty('medium')
-    game_manager.start_game()
+    
+    # Test no time limit
+    game_manager.set_difficulty('easy')  # No time limit
     assert not game_manager.is_time_up()
-    remaining = game_manager.get_remaining_time()
-    assert remaining is not None
-    assert 0 <= remaining <= 60

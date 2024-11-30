@@ -8,11 +8,18 @@ from src.high_scores import HighScores
 from src.settings import MAX_HIGH_SCORES
 
 @pytest.fixture
-def high_scores(test_data_dir):
+def high_scores(temp_dir):
     """Fixture for HighScores instance with test file."""
-    scores_file = test_data_dir / "test_scores.json"
-    hs = HighScores()
-    hs.scores_file = scores_file
+    scores_file = temp_dir / "test_scores.json"
+    # Initialize with empty scores structure
+    scores_data = {
+        'easy': [],
+        'medium': [],
+        'hard': []
+    }
+    scores_file.write_text(json.dumps(scores_data))
+    
+    hs = HighScores(scores_file)
     return hs
 
 def test_initialization(high_scores):
@@ -49,21 +56,15 @@ def test_score_persistence(high_scores):
     # Add some scores
     high_scores.add_score(55.0, 96.0, "medium")
     high_scores.add_score(65.0, 98.0, "hard")
-
+    
     # Create new instance with same file
-    scores_file = high_scores.scores_file
-    new_hs = HighScores()
-    new_hs.scores_file = scores_file
+    new_scores = HighScores(high_scores.scores_file)
     
     # Verify scores were loaded
-    assert new_hs.get_scores("medium")[0]['wpm'] == 55.0
-    assert new_hs.get_scores("hard")[0]['wpm'] == 65.0
+    assert new_scores.get_scores("medium")[0]['wpm'] == 55.0
+    assert new_scores.get_scores("hard")[0]['wpm'] == 65.0
 
 def test_invalid_difficulty(high_scores):
     """Test handling of invalid difficulty levels."""
-    # Adding score with invalid difficulty
-    high_scores.add_score(50.0, 95.0, "invalid")
-    assert "invalid" not in high_scores.scores
-
-    # Getting scores for invalid difficulty
-    assert high_scores.get_scores("invalid") == []
+    with pytest.raises(ValueError):
+        high_scores.add_score(50.0, 95.0, "invalid")
